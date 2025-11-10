@@ -53,7 +53,7 @@ artifacts/
 **/*.pptx
 
 # -------- Allow small samples & documentation --------
-# Allow small example datasets
+# Allow small example datasets (top-level data/sample)
 !data/sample/
 !data/sample/*.csv
 
@@ -80,3 +80,7 @@ src/data/processed/**
 !src/data/interim/.gitkeep
 !src/data/processed/.gitkeep
 
+# -------- Allow sample files for Git demo under src/data/raw --------
+# This must be AFTER the ignore rules above so it can override them
+!src/data/raw/interim/output_data/samples_for_git/
+!src/data/raw/interim/output_data/samples_for_git/**
