@@ -20,30 +20,54 @@ The end product is:
 ### 2.1 Core data
 
 - NYC Accidents – city crash records with:
-  - Timestamps (Start_Time, End_Time),
-  - GPS coordinates (Start_Lat, Start_Lng, End_Lat, End_Lng),
-  - Road and infrastructure flags (e.g., Bump, Junction, Traffic_Signal),
-  - Basic weather measurements (visibility, temperature, humidity, wind speed, precipitation),
-  - Raw severity score (Severity from 1 to 4).
+  - Timestamps: Start_Time, End_Time
+  - GPS coordinates: Start_Lat, Start_Lng, End_Lat, End_Lng
+  - Road and infrastructure flags (e.g., Bump, Junction, Traffic_Signal)
+  - Basic weather measurements (visibility, temperature, humidity, wind speed, precipitation)
+  - Raw severity score: Severity (1 to 4)
 
 - FARS (Fatality Analysis Reporting System) – records at the person/vehicle level:
-  - FARS__DRIVER_AGE, FARS__SEX, FARS__ALC_RES,
-  - Vehicle body type (FARS__BODY_TYP), make (FARS__MAKE),
-  - Other vehicle-level and coding variables.
+  - Person-level: FARS__DRIVER_AGE, FARS__SEX, FARS__ALC_RES
+  - Vehicle-level: FARS__BODY_TYP (body type), FARS__MAKE (make)
+  - Additional vehicle-level and coding variables
 
 These datasets are joined into a single, enriched table:
-NYC_Accidents_with_FARS_raw.csv.
+
+- NYC_Accidents_with_FARS_raw.csv
+
 
 ### 2.2 Person / Vehicle / Environment view
 
 The pipeline is explicitly designed to capture three dimensions:
 
-- Person: driver age, sex, and alcohol involvement (cleaned/encoded FARS fields).
-- Vehicle: grouped vehicle body types and basic make categories.
-- Environment: road type (highway vs street), weather conditions, visibility, precipitation, wind, day/night, weekend, spatial location (boroughs), distance of the accident, and time-of-day.
+- Person  
+  Driver age, sex, and alcohol involvement (cleaned/encoded FARS fields).
+
+- Vehicle  
+  Grouped vehicle body types and basic make categories.
+
+- Environment  
+  Road type (highway vs street), weather conditions, visibility, precipitation, wind, day/night, weekend, spatial location (boroughs), distance of the accident, and time-of-day.
 
 This integrated feature space is then used for modeling and SHAP-based explainability.
 
+
+### 2.3 Sample file for Git users (starting point)
+
+The full raw file NYC_Accidents_with_FARS_raw.csv and the full prepared file df_prepared.csv are not stored in the repository.
+
+Instead, the repo contains a sample derived from df_prepared.csv, which can be used to run the project from the “df_prepared stage and onward”:
+
+- src/data/raw/interim/output_data/samples_for_git/df_prepared_sample_for_git.csv
+
+If you do not have the full raw data locally:
+
+- Treat this file as your starting point instead of df_prepared.csv.
+- From this sample, you can run the pipeline starting at Section 4.2 (EDA & Sentiment) and continue through:
+  - Cleaning & extended EDA
+  - Train/val/test split
+  - Train-fitted feature engineering
+  - Stage 2 modeling and SHAP explainability
 
 ## 3. Project Structure (high level)
 
