@@ -84,3 +84,5 @@ src/data/processed/**
 # This must be AFTER the ignore rules above so it can override them
 !src/data/raw/interim/output_data/samples_for_git/
 !src/data/raw/interim/output_data/samples_for_git/**
+!reports/figures/*.png
+!reports/figures/*.pdf
