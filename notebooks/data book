@@ -1,0 +1,307 @@
+
+## Column description
+ 1.  ID - This is a unique identifier of the accident record.
+ 2.  Source - Source of raw accident data
+ 3.  Severity - Shows the severity of the accident,
+     a number between 1 and 4, where 1 indicates the least impact on traffic
+ 4.  Start_Time - Shows start time of the accident in local time zone.
+ 5.  End_Time - Shows end time of the accident in local time zone.
+     End time here refers to when the impact of accident on
+ 6.  Start_Lat - Shows latitude in GPS coordinate of the start point.
+ 7.  Start_Lng - Shows longitude in GPS coordinate of the start point.
+ 8.  End_Lat - Shows latitude in GPS coordinate of the end point.
+ 9.  End_Lng - Shows longitude in GPS coordinate of the end point.
+ 10. Distance(mi) - The length of the road extent affected by the accident in miles.
+ 11. Description - Shows a human provided description of the accident.
+ 12. Street - Shows the street name in address field.
+ 13. City - Shows the city in address field.
+ 14. County - Shows the county in address field.
+ 15. State - Shows the state in address field.
+ 16. Zipcode - Shows the zipcode in address field.
+ 17. Country - Shows the country in address field.
+ 18. Timezone - Shows timezone based on the location of the accident (eastern, central, etc.).
+ 19. Airport_Code - Denotes an airport-based weather station which is the closest one to location of the accident.
+ 20. Weather_Timestamp - Shows the time-stamp of weather observation record (in local time).
+ 21. Temperature(F) - Shows the temperature (in Fahrenheit).
+ 22. Wind_Chill(F) - Shows the wind chill (in Fahrenheit).
+ 23. Humidity(%) - Shows the humidity (in percentage).
+ 24. Pressure(in) - Shows the air pressure (in inches).
+ 25. Visibility(mi) - Shows visibility (in miles).
+ 26. Wind_Direction - Shows wind direction.
+ 27. Wind_Speed(mph) - Shows wind speed (in miles per hour).
+ 28. Precipitation(in) - Shows precipitation amount in inches, if there is any.
+ 29. Weather_Condition - Shows the weather condition (rain, snow, thunderstorm, fog, etc.)
+ 30. Amenity - A POI (Point of Interest) annotation which indicates presence of amenity in a nearby location.
+ 31. Bump -A POI annotation which indicates presence of speed bump or hump in a nearby location.
+ 32. Crossing - A POI annotation which indicates presence of crossing in a nearby location.
+ 33. Give_Way - A POI annotation which indicates presence of give_way in a nearby location.
+ 34. Junction - A POI annotation which indicates presence of junction in a nearby location.
+ 35. No_Exit - A POI annotation which indicates presence of no_exit in a nearby location.
+ 36. Railway - A POI annotation which indicates presence of railway in a nearby location.
+ 37. Roundabout - A POI annotation which indicates presence of roundabout in a nearby location.
+ 38. Station - A POI annotation which indicates presence of station in a nearby location.
+ 39. Stop - A POI annotation which indicates presence of stop in a nearby location.
+ 40. Traffic_Calming - A POI annotation which indicates presence of traffic_calming in a nearby location.
+ 41. Traffic_Signal - A POI annotation which indicates presence of traffic_signal in a nearby location.
+ 42. Turning_Loop - A POI annotation which indicates presence of turning_loop in a nearby location.
+ 43. Sunrise_Sunset - Shows the period of day (i.e. day or night) based on sunrise/sunset.
+ 44. Civil_Twilight - Shows the period of day (i.e. day or night) based on civil twilight.
+ 44  Nautical_Twilight - Shows the period of day (i.e. day or night) based on nautical twilight.
+ 45  Astronomical_Twilight - Shows the period of day (i.e. day or night) based on astronomical twilight.
+ 46  Zipcode_clean  - created for normalized zip var
+ 47  zip_code_clean - created for normalized zip var
+ 48  Borough - A new variable was created from the NYC Zipcodes dataset by merging it with the accidents dataset on ZIP codes,
+     allowing recognition of all New York boroughs.
+
+
+## FARS -Column description
+
+Link/geometry
+
+match_distance_km
+Distance (in kilometers) from the NYC accident point to the nearest FARS crash we matched to (within a borough-specific cap). NaN if no spatial match.
+
+FARS keys & time (from FARS)
+FARS__STATE- FARS state FIPS (NY = 36).
+FARS__ST_CASE- FARS crash case ID (unique within a state & year).
+FARS__VEH_NO- Vehicle number within the FARS crash record.
+FARS__YEAR / FARS__MONTH / FARS__DAY / FARS__HOUR / FARS__MINUTE- Crash date/time fields from FARS (local time). Note: some hours/minutes can be missing/unknown in FARS for a subset of cases.
+
+#Driver attributes (from FARS PERSON, driver rows only)
+
+FARS__DRIVER_AGE- Driver’s age as recorded by FARS. Special/sentinel codes may appear (e.g., 998/999 = unknown); we keep raw here.
+FARS__SEX- Driver sex code (typical FARS: 1=Male, 2=Female, 8=Not reported, 9=Unknown). We’ve left the raw code; we can add a decoded DRIVER_SEX if you want.
+FARS__ALC_RES- Alcohol test result code (BAC/test outcome coding used by FARS—includes values for not tested, test refused, pending, unknown, as well as numeric ranges when available). Treat as coded categorical unless you decode with the FARS codebook.
+FARS__DRUGRES1 / FARS__DRUGRES2 / FARS__DRUGRES3- Drug test result codes for up to three drug findings/categories. Frequently missing because tests aren’t always performed or reported; codes represent negative/positive/unknown/not tested categories depending on year schema.
+FARS__REST_USE- Restraint use code (e.g., seat belt/child restraint/helmet; includes not used/used/unknown categories). Needs decoding table for human labels.
+
+#Vehicle attributes (from FARS VEHICLE)
+
+FARS__MAKE- Vehicle make code (manufacturer). Numeric code; needs decoding to names (e.g., Toyota, Ford, etc.).
+FARS__MOD_YEAR- Vehicle model year. Sentinel 9999 sometimes used for unknown.
+FARS__BODY_TYP- Vehicle body type code (e.g., 2-door sedan, SUV, pickup, motorcycle, bus). Needs a code map.
+
+#FARS crash location (from FARS ACCIDENT)
+
+FARS__FARS_LAT / FARS__FARS_LON- Latitude/longitude recorded by FARS for the crash site (WGS84). These are what we used to compute match_distance_km.
+
+#Derived features ( computed from the raw FARS fields)
+DRIVER_AGE_YRS- Cleaned numeric driver age: converts typical “unknown” sentinel codes to NaN, clips absurd values, and treats infants (0) as 0.5. Expect missing when FARS age is unknown.
+VEHICLE_AGE_YRS- FARS__YEAR - FARS__MOD_YEAR (clipped to 0–80, with sentinel years set to NaN). Missing when model year unknown (e.g., 9999) or inconsistent.
+
+
+
+[INFO] Accidents (NYC-filter, pre-borough-merge):
+<class 'pandas.core.frame.DataFrame'>
+Index: 117645 entries, 194298 to 7728020
+Data columns (total 47 columns):
+ #   Column                 Non-Null Count   Dtype
+---  ------                 --------------   -----
+ 0   ID                     117645 non-null  object
+ 1   Source                 117645 non-null  object
+ 2   Severity               117645 non-null  int64
+ 3   Start_Time             117645 non-null  object
+ 4   End_Time               117645 non-null  object
+ 5   Start_Lat              117645 non-null  float64
+ 6   Start_Lng              117645 non-null  float64
+ 7   End_Lat                72643 non-null   float64
+ 8   End_Lng                72643 non-null   float64
+ 9   Distance(mi)           117645 non-null  float64
+ 10  Description            117645 non-null  object
+ 11  Street                 117229 non-null  object
+ 12  City                   117645 non-null  object
+ 13  County                 117645 non-null  object
+ 14  State                  117645 non-null  object
+ 15  Zipcode                117645 non-null  object
+ 16  Country                117645 non-null  object
+ 17  Timezone               117645 non-null  object
+ 18  Airport_Code           117644 non-null  object
+ 19  Weather_Timestamp      117105 non-null  object
+ 20  Temperature(F)         116830 non-null  float64
+ 21  Wind_Chill(F)          92387 non-null   float64
+ 22  Humidity(%)            116830 non-null  float64
+ 23  Pressure(in)           115706 non-null  float64
+ 24  Visibility(mi)         116257 non-null  float64
+ 25  Wind_Direction         114531 non-null  object
+ 26  Wind_Speed(mph)        110352 non-null  float64
+ 27  Precipitation(in)      89559 non-null   float64
+ 28  Weather_Condition      116436 non-null  object
+ 29  Amenity                117645 non-null  bool
+ 30  Bump                   117645 non-null  bool
+ 31  Crossing               117645 non-null  bool
+ 32  Give_Way               117645 non-null  bool
+ 33  Junction               117645 non-null  bool
+ 34  No_Exit                117645 non-null  bool
+ 35  Railway                117645 non-null  bool
+ 36  Roundabout             117645 non-null  bool
+ 37  Station                117645 non-null  bool
+ 38  Stop                   117645 non-null  bool
+ 39  Traffic_Calming        117645 non-null  bool
+ 40  Traffic_Signal         117645 non-null  bool
+ 41  Turning_Loop           117645 non-null  bool
+ 42  Sunrise_Sunset         117645 non-null  object
+ 43  Civil_Twilight         117645 non-null  object
+ 44  Nautical_Twilight      117645 non-null  object
+ 45  Astronomical_Twilight  117645 non-null  object
+ 46  Zipcode_clean          117645 non-null  string
+dtypes: bool(13), float64(12), int64(1), object(20), string(1)
+memory usage: 32.9+ MB
+
+
+
+[INFO] Accidents + Boroughs (after first merge):
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 117645 entries, 0 to 117644
+Data columns (total 49 columns):
+ #   Column                 Non-Null Count   Dtype
+---  ------                 --------------   -----
+ 0   ID                     117645 non-null  object
+ 1   Source                 117645 non-null  object
+ 2   Severity               117645 non-null  int64
+ 3   Start_Time             117645 non-null  object
+ 4   End_Time               117645 non-null  object
+ 5   Start_Lat              117645 non-null  float64
+ 6   Start_Lng              117645 non-null  float64
+ 7   End_Lat                72643 non-null   float64
+ 8   End_Lng                72643 non-null   float64
+ 9   Distance(mi)           117645 non-null  float64
+ 10  Description            117645 non-null  object
+ 11  Street                 117229 non-null  object
+ 12  City                   117645 non-null  object
+ 13  County                 117645 non-null  object
+ 14  State                  117645 non-null  object
+ 15  Zipcode                117645 non-null  object
+ 16  Country                117645 non-null  object
+ 17  Timezone               117645 non-null  object
+ 18  Airport_Code           117644 non-null  object
+ 19  Weather_Timestamp      117105 non-null  object
+ 20  Temperature(F)         116830 non-null  float64
+ 21  Wind_Chill(F)          92387 non-null   float64
+ 22  Humidity(%)            116830 non-null  float64
+ 23  Pressure(in)           115706 non-null  float64
+ 24  Visibility(mi)         116257 non-null  float64
+ 25  Wind_Direction         114531 non-null  object
+ 26  Wind_Speed(mph)        110352 non-null  float64
+ 27  Precipitation(in)      89559 non-null   float64
+ 28  Weather_Condition      116436 non-null  object
+ 29  Amenity                117645 non-null  bool
+ 30  Bump                   117645 non-null  bool
+ 31  Crossing               117645 non-null  bool
+ 32  Give_Way               117645 non-null  bool
+ 33  Junction               117645 non-null  bool
+ 34  No_Exit                117645 non-null  bool
+ 35  Railway                117645 non-null  bool
+ 36  Roundabout             117645 non-null  bool
+ 37  Station                117645 non-null  bool
+ 38  Stop                   117645 non-null  bool
+ 39  Traffic_Calming        117645 non-null  bool
+ 40  Traffic_Signal         117645 non-null  bool
+ 41  Turning_Loop           117645 non-null  bool
+ 42  Sunrise_Sunset         117645 non-null  object
+ 43  Civil_Twilight         117645 non-null  object
+ 44  Nautical_Twilight      117645 non-null  object
+ 45  Astronomical_Twilight  117645 non-null  object
+ 46  Zipcode_clean          117645 non-null  string
+ 47  zip_code_clean         115643 non-null  string
+ 48  Borough                117645 non-null  object
+dtypes: bool(13), float64(12), int64(1), object(21), string(2)
+memory usage: 33.8+ MB
+FARS 2016: 100%|██████████| 26.8M/26.8M [00:01<00:00, 14.5MB/s]
+FARS 2017: 100%|██████████| 26.8M/26.8M [00:01<00:00, 15.6MB/s]
+FARS 2018: 100%|██████████| 26.9M/26.9M [00:01<00:00, 18.3MB/s]
+FARS 2019: 100%|██████████| 27.0M/27.0M [00:01<00:00, 18.4MB/s]
+FARS 2020: 100%|██████████| 31.0M/31.0M [00:01<00:00, 19.9MB/s]
+FARS 2021: 100%|██████████| 35.2M/35.2M [00:01<00:00, 19.5MB/s]
+FARS 2022: 100%|██████████| 34.7M/34.7M [00:01<00:00, 17.5MB/s]
+FARS 2023: 100%|██████████| 34.0M/34.0M [00:01<00:00, 19.1MB/s]
+
+[INFO] Saved FARS slim to: C:\Users\LEA GUR-ARIE\PycharmProjects\USA_Accidents_ML\src\data\raw\interim\output data\fars_nyc_slim.csv
+
+[INFO] FARS slim (NYC-only, geo kept):
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 116964 entries, 0 to 116963
+Data columns (total 11 columns):
+ #   Column      Non-Null Count   Dtype
+---  ------      --------------   -----
+ 0   STATE       116964 non-null  int64
+ 1   ST_CASE     116964 non-null  int64
+ 2   VEH_NO      116964 non-null  int64
+ 3   DRIVER_AGE  116964 non-null  int64
+ 4   SEX         116964 non-null  int64
+ 5   ALC_RES     116964 non-null  int64
+ 6   MAKE        116964 non-null  int64
+ 7   MOD_YEAR    116964 non-null  int64
+ 8   BODY_TYP    116964 non-null  int64
+ 9   FARS_LAT    116964 non-null  float64
+ 10  FARS_LON    116964 non-null  float64
+dtypes: float64(2), int64(9)
+memory usage: 9.8 MB
+
+[INFO] Accidents + Boroughs + FARS (after second merge):
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 117645 entries, 0 to 117644
+Data columns (total 61 columns):
+ #   Column                 Non-Null Count   Dtype
+---  ------                 --------------   -----
+ 0   ID                     117645 non-null  object
+ 1   Source                 117645 non-null  object
+ 2   Severity               117645 non-null  int64
+ 3   Start_Time             117645 non-null  object
+ 4   End_Time               117645 non-null  object
+ 5   Start_Lat              117645 non-null  float64
+ 6   Start_Lng              117645 non-null  float64
+ 7   End_Lat                72643 non-null   float64
+ 8   End_Lng                72643 non-null   float64
+ 9   Distance(mi)           117645 non-null  float64
+ 10  Description            117645 non-null  object
+ 11  Street                 117229 non-null  object
+ 12  City                   117645 non-null  object
+ 13  County                 117645 non-null  object
+ 14  State                  117645 non-null  object
+ 15  Zipcode                117645 non-null  object
+ 16  Country                117645 non-null  object
+ 17  Timezone               117645 non-null  object
+ 18  Airport_Code           117644 non-null  object
+ 19  Weather_Timestamp      117105 non-null  object
+ 20  Temperature(F)         116830 non-null  float64
+ 21  Wind_Chill(F)          92387 non-null   float64
+ 22  Humidity(%)            116830 non-null  float64
+ 23  Pressure(in)           115706 non-null  float64
+ 24  Visibility(mi)         116257 non-null  float64
+ 25  Wind_Direction         114531 non-null  object
+ 26  Wind_Speed(mph)        110352 non-null  float64
+ 27  Precipitation(in)      89559 non-null   float64
+ 28  Weather_Condition      116436 non-null  object
+ 29  Amenity                117645 non-null  bool
+ 30  Bump                   117645 non-null  bool
+ 31  Crossing               117645 non-null  bool
+ 32  Give_Way               117645 non-null  bool
+ 33  Junction               117645 non-null  bool
+ 34  No_Exit                117645 non-null  bool
+ 35  Railway                117645 non-null  bool
+ 36  Roundabout             117645 non-null  bool
+ 37  Station                117645 non-null  bool
+ 38  Stop                   117645 non-null  bool
+ 39  Traffic_Calming        117645 non-null  bool
+ 40  Traffic_Signal         117645 non-null  bool
+ 41  Turning_Loop           117645 non-null  bool
+ 42  Sunrise_Sunset         117645 non-null  object
+ 43  Civil_Twilight         117645 non-null  object
+ 44  Nautical_Twilight      117645 non-null  object
+ 45  Astronomical_Twilight  117645 non-null  object
+ 46  Zipcode_clean          117645 non-null  string
+ 47  zip_code_clean         115643 non-null  string
+ 48  Borough                117645 non-null  object
+ 49  match_distance_km      116477 non-null  object
+ 50  FARS__STATE            116477 non-null  object
+ 51  FARS__ST_CASE          116477 non-null  object
+ 52  FARS__VEH_NO           116477 non-null  object
+ 53  FARS__DRIVER_AGE       116477 non-null  object
+ 54  FARS__SEX              116477 non-null  object
+ 55  FARS__ALC_RES          116477 non-null  object
+ 56  FARS__MAKE             116477 non-null  object
+ 57  FARS__MOD_YEAR         116477 non-null  object
+ 58  FARS__BODY_TYP         116477 non-null  object
+ 59  FARS__FARS_LAT         116477 non-null  object
+ 60  FARS__FARS_LON         116477 non-null  object
+dtypes: bool(13), float64(12), int64(1), object(33), string(2)

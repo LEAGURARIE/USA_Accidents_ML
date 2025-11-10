@@ -1,0 +1,82 @@
+# -------- Python / IDE files --------
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+.venv/
+venv/
+.idea/
+.vscode/
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+
+# -------- Data & artifacts (root and anywhere in the tree) --------
+# These folders usually contain raw or intermediate datasets, model artifacts, or generated files.
+data/raw/
+data/interim/
+data/processed/
+output/
+artifacts/
+
+# Match these folders anywhere in the project tree
+**/data/raw/
+**/data/interim/
+**/data/processed/
+**/output/
+**/artifacts/
+**/EDA_plot/
+**/postEDA_plot/
+**/split_bin/
+**/_fe_artifacts/
+
+# -------- Large / binary files (ignore everywhere) --------
+# Common ML binary formats and large artifacts that should not be in Git.
+**/*.pkl
+**/*.joblib
+**/*.sav
+**/*.h5
+**/*.pt
+**/*.zip
+**/*.7z
+**/*.gz
+**/*.csv
+**/*.parquet
+**/*.xlsx
+**/*.xls
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.tif
+**/*.tiff
+**/*.pdf
+**/*.pptx
+
+# -------- Allow small samples & documentation --------
+# Allow small example datasets
+!data/sample/
+!data/sample/*.csv
+
+# Allow documentation assets
+!docs/
+!docs/assets/
+
+# Prefer optimized image formats (WebP) for documentation
+!docs/assets/*.webp
+
+# Allow compressed/thumbnail images
+!docs/assets/thumbs/
+!docs/assets/thumbs/*.jpg
+!docs/assets/thumbs/*.jpeg
+!docs/assets/thumbs/*.png
+
+# -------- Repo-specific: ignore data folders under src/data --------
+src/data/raw/**
+src/data/interim/**
+src/data/processed/**
+
+# (optional) keep empty markers if you ever add them
+!src/data/raw/.gitkeep
+!src/data/interim/.gitkeep
+!src/data/processed/.gitkeep
+
