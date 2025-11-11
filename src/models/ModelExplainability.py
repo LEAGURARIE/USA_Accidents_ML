@@ -40,6 +40,7 @@ import matplotlib.pyplot as plt
 import shap
 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score  # >>> ADDED
 
 # Optional XGBoost
 XGB_OK = True
@@ -63,6 +64,7 @@ PROCESSED_DIR = os.path.join(PROJECT_ROOT, "src", "data", "raw", "processed")
 TRAIN_PROCESSED_PATH = os.path.join(PROCESSED_DIR, "train_stage2_processed.csv")
 VALID_PROCESSED_PATH = os.path.join(PROCESSED_DIR, "valid_stage2_processed.csv")
 TEST_PROCESSED_PATH = os.path.join(PROCESSED_DIR, "test_stage2_processed.csv")
+TEST_TARGET_PATH = os.path.join(PROCESSED_DIR, "test_stage2_target.csv")  # >>> ADDED
 
 MODEL_SELECTION_XLSX = os.path.join(PROCESSED_DIR, "model_selection_stage2.xlsx")
 
@@ -381,10 +383,13 @@ def main() -> None:
         raise FileNotFoundError(f"VALID processed file not found: {VALID_PROCESSED_PATH}")
     if not os.path.exists(TEST_PROCESSED_PATH):
         raise FileNotFoundError(f"TEST processed file not found: {TEST_PROCESSED_PATH}")
+    if not os.path.exists(TEST_TARGET_PATH):  # >>> ADDED
+        raise FileNotFoundError(f"TEST target file not found: {TEST_TARGET_PATH}")  # >>> ADDED
 
     train_df = pd.read_csv(TRAIN_PROCESSED_PATH)
     valid_df = pd.read_csv(VALID_PROCESSED_PATH)
     test_df = pd.read_csv(TEST_PROCESSED_PATH)
+    test_target_df = pd.read_csv(TEST_TARGET_PATH)  # >>> ADDED
 
     print("[INFO] Loaded Stage-2 processed splits:")
     print("  train_stage2_processed:", train_df.shape)
@@ -393,6 +398,13 @@ def main() -> None:
 
     # --- Resolve target name from train ---
     target_name = resolve_target_name(train_df)
+
+    # --- Extract y_test from separate target file ---  # >>> ADDED
+    if target_name not in test_target_df.columns:  # >>> ADDED
+        raise ValueError(  # >>> ADDED
+            f"Target column '{target_name}' not found in TEST target file: {TEST_TARGET_PATH}"  # >>> ADDED
+        )  # >>> ADDED
+    y_test = test_target_df[target_name].to_numpy(dtype=float)  # >>> ADDED
 
     # --- Split X/y for train and valid + leak guard ---
     x_train_df, y_train = split_x_y_with_leak_guard(train_df, target_name)
@@ -426,6 +438,20 @@ def main() -> None:
     # --- Fit model on TRAIN + VALID (full data, no TEST) ---
     print(f"[INFO] Fitting best model on TRAIN+VALID: {best_model_name}")
     model.fit(x_train_full_np, y_train_full_np)
+
+    # >>> ADDED: Evaluate model on TRAIN+VALID and TEST
+    y_pred_train = model.predict(x_train_full_np)
+    y_pred_test = model.predict(x_test_np)
+
+    train_rmse = float(np.sqrt(mean_squared_error(y_train_full_np, y_pred_train)))
+    test_rmse = float(np.sqrt(mean_squared_error(y_test, y_pred_test)))
+    train_r2 = float(r2_score(y_train_full_np, y_pred_train))
+    test_r2 = float(r2_score(y_test, y_pred_test))
+
+    print("\n[RESULT] Final model performance (TRAIN+VALID vs TEST):")
+    print(f"  TRAIN+VALID RMSE = {train_rmse:.4f} | R² = {train_r2:.4f}")
+    print(f"  TEST        RMSE = {test_rmse:.4f} | R² = {test_r2:.4f}\n")
+    # <<< END ADDED BLOCK
 
     # --- Compute SHAP values on ALL TEST rows ---
     # Pass x_train_full_np as background for the permutation explainer (XGB case).
