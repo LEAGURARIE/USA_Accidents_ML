@@ -374,6 +374,48 @@ The result is three aligned, fully processed feature tables:
 - valid_fe.csv – validation set,
 - test_fe.csv – hold-out test set.
 
+## 5.3 Feature Selection – Two-Stage Statistical and Domain Logic
+
+After feature engineering, a two-stage feature selection process was applied to identify the most stable and interpretable predictors of accident severity.
+
+### Stage 1 – Model-Voting Selection
+
+- Five base models were trained on the engineered TRAIN FE dataset:  
+  Lasso, Ridge, GradientBoosting, RandomForest, and LinearSVR.
+- Each model contributed a binary vote for feature importance.
+- A feature was selected if it achieved a total vote sum ≥ 3.
+- Group logic:  
+  If at least one dummy variable of a categorical base was selected, all dummies belonging to that base were retained (to preserve interpretability and complete category context).
+- Output file:  
+  selected_feature_names_sum_ge_3.csv – containing all features passing Stage 1 voting threshold.
+
+### Stage 2 – Refined Selection and Domain Augmentation
+
+- The Stage 2 process started from the Stage 1 grouped features and added domain-critical variables that did not pass Stage 1 but are theoretically essential in accident analysis:
+  - ALC_category – alcohol involvement indicator.  
+  - FARS__SEX_3cat – driver sex group (male / female / missing).
+- On this combined feature set, three complementary selection methods were applied:
+  1. XGBoost feature importance
+  2. Recursive Feature Elimination (RFE) with XGBoost
+  3. Permutation Importance
+- A feature was retained if it met any of the following:
+  - Selected by RFE,
+  - XGBoost importance ≥ median importance,
+  - Permutation importance ≥ median importance.
+- Group inclusion logic was reapplied for categorical bases (same as Stage 1).
+- Output file:  
+  stage2_selected_features.csv – refined and domain-augmented final feature list.
+
+### Final Feature Set Summary
+
+- The final model used 16 features in total.
+- Most features were selected through statistical importance across the two stages.  
+- Two features — ALC_category and FARS__SEX_3cat — were manually retained despite lower statistical importance, due to their high domain relevance and impact on model interpretability.
+- This ensured that the final model reflects not only statistical strength but also key behavioral and demographic aspects relevant for traffic safety analysis.
+
+---
+
+
 
 ## 6. Stage 2 – Model Selection
 
